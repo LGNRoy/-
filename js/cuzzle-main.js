@@ -1,6 +1,10 @@
 var CW = 400, CH = 320;
 var SQURE_SIZE = 40, LINE_SIZE = 10, NUMB = 11;
 var diffculty = 1, currentRgb = new Array(0,0,0);
+var isEnd = false;
+var c;
+var ctx;
+var result;
 
 
 window.onload = function () {
@@ -8,46 +12,56 @@ window.onload = function () {
 }
 
 function init() {
-  var c = document.getElementById("cuzzle");
+  c = document.getElementById("cuzzle");
   CW = document.body.offsetWidth;
   c.width = CW;
   c.height = CW;
-  var ctx = c.getContext("2d");
+  ctx = c.getContext("2d");
 
+  c.addEventListener("click", clickHandler, false);
   //run(ctx);
-  initOnce(ctx, calculatePosition());
+  initOnce(calculatePosition());
 }
 
-function run(ctx){
-  var position = calculatePosition();
+function clickHandler(e) {
+  var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
+  var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
+  var x = e.pageX || e.clientX + scrollX;
+  var y = e.pageY || e.clientY + scrollY;
 
-  var isRight = true;
+  var touchPoint = {x, y};
+  //console.log("点击位置：" + "[" + x + ", " + y + "]");
 
-  while(isRight) {
-    initOnce(ctx, position);
-    isRight = isSuccess();
-    diffculty++;
-
-    if(diffculty > 30) {
-      isRight = false;
-    }
-  }
+  isEnd = isUnsuccess(touchPoint);
 
   if(diffculty > 30) {
-    alert("success!");
-  } else {
-    alert("failed");
+    isEnd = true;
+    alert("you win");
   }
+
+  if(!isEnd) {
+    var position = calculatePosition();
+    diffculty++;
+    initOnce(position);
+  }
+
 }
 
-function isSuccess () {
-  var isRight = true;
+function isUnsuccess (touchPoint) {
+  var isUnsuccess = true;
+  console.log("结果" + "[" + touchPoint.x + ", " + touchPoint.y + "]");
+  console.log("答案" + "[" + result.x + "," + result.y + "]");
 
-  console.log("成功：" + isRight);
-  return isRight;
+  if((touchPoint.x >= result.x) && (touchPoint.x <= result.x + SQURE_SIZE)){
+    if((touchPoint.y >= result.y) && (touchPoint.y <= result.y + SQURE_SIZE)){
+      isUnsuccess = false;
+    }
+  }
+  console.log("未成功：" + isUnsuccess);
+  return isUnsuccess;
 }
 
-function initOnce(ctx, position) {
+function initOnce(position) {
   console.log("第" + diffculty + "次");
 
   var rgb = new Array(3);
@@ -55,29 +69,30 @@ function initOnce(ctx, position) {
   rgb[0] = getRandom(0, 256);
   rgb[1] = getRandom(0, 256);
   rgb[2] = getRandom(0, 256);
-  console.log("当前颜色：[" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + "]");
+  //console.log("当前颜色：[" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + "]");
 
   var changePoint = getRandom(0, 121);
-  draw(ctx, position, rgb, changePoint);
+  draw(position, rgb, changePoint);
 }
 
-function draw(ctx, position, rgb, changePoint){
-  console.log("绘制一次");
+function draw(position, rgb, changePoint){
+  //console.log("绘制一次");
   var hexColor = rgbToHex(rgb);
-  console.log("改变位置：" + changePoint);
+  //console.log("改变位置：" + changePoint);
 
   for(var i = 0; i < position.length; i++) {
     var Point = position[i];
 
     ctx.fillStyle = hexColor;
-    ctx.rect(Point.x,Point.y,SQURE_SIZE,SQURE_SIZE);
-    ctx.fill();
+    ctx.fillRect(Point.x,Point.y,SQURE_SIZE,SQURE_SIZE);
   }
 
   var change = position[changePoint];
+  result = change;
+  //console.log("查看答案坐标：" + change.x + "," + change.y);
+
   ctx.fillStyle = changeColor(rgb);
-  ctx.rect(change.x,change.y,SQURE_SIZE,SQURE_SIZE);
-  ctx.fill();
+  ctx.fillRect(change.x,change.y,SQURE_SIZE,SQURE_SIZE);
 }
 
 function calculatePosition() {
@@ -125,14 +140,14 @@ function calculateDifference() {
   } else {
     differencePoint = Math.floor(0.8 * diffculty + 27);
   }
-  console.log("偏差总值："+differencePoint);
+  //console.log("偏差总值："+differencePoint);
 
   difference[0] = getRandom(0, differencePoint + 1);
   differencePoint -= difference[0];
   difference[1] = getRandom(0, differencePoint + 1);
   differencePoint -= difference[1];
   difference[2] = differencePoint;
-  console.log("随机值：[" + difference[0]*5 + ", " + difference[1]*5 + ", " + difference[2]*5 + "]");
+  //console.log("随机值：[" + difference[0]*5 + ", " + difference[1]*5 + ", " + difference[2]*5 + "]");
 
   return difference;
 }
@@ -168,7 +183,7 @@ function rgbToHex (rgb) {
   hax += deToHex(rgb[0]);
   hax += deToHex(rgb[1]);
   hax += deToHex(rgb[2]);
-  console.log(hax);
+  //console.log(hax);
   return hax;
 }
 
